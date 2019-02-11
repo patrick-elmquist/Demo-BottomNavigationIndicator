@@ -13,6 +13,12 @@ import androidx.interpolator.view.animation.FastOutSlowInInterpolator
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import kotlin.math.roundToInt
 
+private const val INDICATOR_SIZE_DP = 4
+private const val INDICATOR_OFFSET_DP = 6
+private const val INDICATOR_TRANSLATION_DURATION = 500L
+private const val INDICATOR_SCALE_MAX = 1.5f
+private const val INDICATOR_SCALE_DURATION = 300L
+
 class BottomNavigationLayout @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
@@ -145,15 +151,5 @@ class BottomNavigationLayout @JvmOverloads constructor(
             duration = INDICATOR_SCALE_DURATION
             start()
         }
-    }
-
-    companion object {
-        private const val INDICATOR_SIZE_DP = 4
-        private const val INDICATOR_OFFSET_DP = 6
-
-        private const val INDICATOR_TRANSLATION_DURATION = 500L
-
-        private const val INDICATOR_SCALE_MAX = 1.5f
-        private const val INDICATOR_SCALE_DURATION = 300L
     }
 }
