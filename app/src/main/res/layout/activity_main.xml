@@ -21,6 +21,42 @@
         android:paddingBottom="8dp"
         />
 
+    <com.patrickiv.bottomnavigationindicator.BottomNavigationLayoutBasic
+        android:id="@+id/bottomNavigationFirst"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:minHeight="?actionBarSize"
+        android:background="?colorPrimary"
+        android:elevation="8dp"
+        app:menu="@menu/bottom_navigation"
+        app:itemIconTint="@color/bottom_navigation_color"
+        app:itemHorizontalTranslationEnabled="false"
+        app:labelVisibilityMode="unlabeled"
+        />
+
+    <Space
+        android:layout_width="0dp"
+        android:layout_height="24dp"
+        />
+
+    <com.patrickiv.bottomnavigationindicator.BottomNavigationLayoutAnimated
+        android:id="@+id/bottomNavigationAnimated"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:minHeight="?actionBarSize"
+        android:background="?colorPrimary"
+        android:elevation="8dp"
+        app:menu="@menu/bottom_navigation"
+        app:itemIconTint="@color/bottom_navigation_color"
+        app:itemHorizontalTranslationEnabled="false"
+        app:labelVisibilityMode="unlabeled"
+        />
+
+    <Space
+        android:layout_width="0dp"
+        android:layout_height="24dp"
+        />
+
     <com.patrickiv.bottomnavigationindicator.BottomNavigationLayout
         android:id="@+id/bottomNavigation"
         android:layout_width="match_parent"

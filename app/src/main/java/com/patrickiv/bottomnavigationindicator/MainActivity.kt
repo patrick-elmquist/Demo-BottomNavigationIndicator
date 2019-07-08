@@ -3,8 +3,15 @@ package com.patrickiv.bottomnavigationindicator
 import android.os.Bundle
 import android.os.Handler
 import androidx.appcompat.app.AppCompatActivity
-import kotlinx.android.synthetic.main.activity_main.*
+import androidx.core.view.postDelayed
+import kotlinx.android.synthetic.main.activity_main.bottomNavigation
+import kotlinx.android.synthetic.main.activity_main.bottomNavigationAnimated
+import kotlinx.android.synthetic.main.activity_main.bottomNavigationFirst
+import kotlinx.android.synthetic.main.activity_main.startButton
+import kotlinx.android.synthetic.main.activity_main.stopButton
 import kotlin.random.Random
+
+private const val DELAY = 3_000L
 
 class MainActivity : AppCompatActivity() {
 
@@ -23,10 +30,14 @@ class MainActivity : AppCompatActivity() {
             var index = current
             while (index == current) index = Random.nextInt(ids.size)
 
+            bottomNavigationFirst.postDelayed(INDICATOR_TRANSLATION_DURATION / 2L) {
+                bottomNavigationFirst.selectedItemId = ids[index]
+            }
+            bottomNavigationAnimated.selectedItemId = ids[index]
             bottomNavigation.selectedItemId = ids[index]
             current = index
 
-            handler.postDelayed(this, 2_000L)
+            handler.postDelayed(this, DELAY)
         }
     }
 
@@ -36,7 +47,7 @@ class MainActivity : AppCompatActivity() {
 
         startButton.setOnClickListener {
             handler.removeCallbacksAndMessages(null)
-            handler.postDelayed(selectRandomTask, 2_000L)
+            handler.postDelayed(selectRandomTask, DELAY)
             startButton.isEnabled = false
             stopButton.isEnabled = true
         }
@@ -56,6 +67,6 @@ class MainActivity : AppCompatActivity() {
 
         startButton.isEnabled = false
         stopButton.isEnabled = true
-        handler.postDelayed(selectRandomTask, 2_000L)
+        handler.postDelayed(selectRandomTask, DELAY)
     }
 }

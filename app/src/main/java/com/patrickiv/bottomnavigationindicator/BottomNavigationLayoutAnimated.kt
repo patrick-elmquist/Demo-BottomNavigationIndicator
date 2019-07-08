@@ -11,15 +11,8 @@ import android.view.View
 import androidx.core.view.doOnPreDraw
 import androidx.interpolator.view.animation.FastOutSlowInInterpolator
 import com.google.android.material.bottomnavigation.BottomNavigationView
-import kotlin.math.roundToInt
 
-const val INDICATOR_SIZE_DP = 4
-const val INDICATOR_OFFSET_DP = 6
-const val INDICATOR_TRANSLATION_DURATION = 500L
-const val INDICATOR_SCALE_MAX = 1.5f
-const val INDICATOR_SCALE_DURATION = 300L
-
-class BottomNavigationLayout @JvmOverloads constructor(
+class BottomNavigationLayoutAnimated @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0
@@ -96,16 +89,12 @@ class BottomNavigationLayout @JvmOverloads constructor(
             // TODO
             // * Make the speed and size depend on the distance to travel
 
-            animator = ValueAnimator.ofFloat(currentScale, 9f, 1f).apply {
+            animator = ValueAnimator.ofFloat(currentScale, 1f, 1f).apply {
                 addUpdateListener {
-                    val scale = it.animatedValue as Float
-                    val newWidth = ((INDICATOR_SIZE_DP.dp * scale).roundToInt())
-                    indicator.layoutParams = indicator.layoutParams.apply { width = newWidth }
-
                     itemView.getLocationOnScreen(position)
                     val itemViewCenterX = position[0] + itemView.width / 2f
                     val distanceTravelled = evaluator.evaluate(animatedFraction, from, itemViewCenterX)
-                    indicator.translationX = distanceTravelled - newWidth / 2f
+                    indicator.translationX = distanceTravelled - indicator.width / 2f
                 }
                 interpolator = FastOutSlowInInterpolator()
                 duration = if (animate) INDICATOR_TRANSLATION_DURATION else 0L
