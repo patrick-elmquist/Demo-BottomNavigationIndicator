@@ -14,10 +14,10 @@ import com.google.android.material.bottomnavigation.BottomNavigationView
 import kotlin.math.roundToInt
 
 const val INDICATOR_SIZE_DP = 4
-const val INDICATOR_OFFSET_DP = 6
-const val INDICATOR_TRANSLATION_DURATION = 500L
-const val INDICATOR_SCALE_MAX = 1.5f
+const val INDICATOR_BOTTOM_MARGIN_DP = 6
+const val INDICATOR_SCALE_MAX = 1.75f
 const val INDICATOR_SCALE_DURATION = 300L
+const val INDICATOR_TRANSLATION_DURATION = 500L
 
 class BottomNavigationLayout @JvmOverloads constructor(
     context: Context,
@@ -35,16 +35,17 @@ class BottomNavigationLayout @JvmOverloads constructor(
     private var animator: ValueAnimator? = null
     private val evaluator = FloatEvaluator()
 
+    private val indicatorBaseSize = INDICATOR_SIZE_DP.pxRounded
     private val indicator = View(context).also {
         it.layoutParams = generateDefaultLayoutParams().apply {
+            width = indicatorBaseSize
+            height = indicatorBaseSize
             gravity = Gravity.BOTTOM
-            width = INDICATOR_SIZE_DP.dpRounded
-            height = INDICATOR_SIZE_DP.dpRounded
-            bottomMargin = INDICATOR_OFFSET_DP.dpRounded
+            bottomMargin = INDICATOR_BOTTOM_MARGIN_DP.pxRounded
         }
         it.background = GradientDrawable().apply {
             color = context.colorAccent.toColorStateList()
-            cornerRadius = it.layoutParams.height.f / 2f
+            cornerRadius = it.layoutParams.height / 2f
         }
         addView(it)
     }
@@ -91,7 +92,7 @@ class BottomNavigationLayout @JvmOverloads constructor(
         findViewById<View>(itemId)?.let { itemView ->
             itemView.getLocationOnScreen(position)
             val from = indicator.x
-            val currentScale = indicator.width / INDICATOR_SIZE_DP.dp
+            val currentScale = indicator.width / indicatorBaseSize.toFloat()
 
             // TODO
             // * Make the speed and size depend on the distance to travel
@@ -99,7 +100,7 @@ class BottomNavigationLayout @JvmOverloads constructor(
             animator = ValueAnimator.ofFloat(currentScale, 9f, 1f).apply {
                 addUpdateListener {
                     val scale = it.animatedValue as Float
-                    val newWidth = ((INDICATOR_SIZE_DP.dp * scale).roundToInt())
+                    val newWidth = ((indicatorBaseSize * scale).roundToInt())
                     indicator.layoutParams = indicator.layoutParams.apply { width = newWidth }
 
                     itemView.getLocationOnScreen(position)
@@ -138,4 +139,6 @@ class BottomNavigationLayout @JvmOverloads constructor(
             start()
         }
     }
+
+    private val Int.pxRounded get() = (this * resources.displayMetrics.density).roundToInt()
 }

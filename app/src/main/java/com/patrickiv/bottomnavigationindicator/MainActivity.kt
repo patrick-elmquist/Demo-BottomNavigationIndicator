@@ -4,7 +4,7 @@ import android.os.Handler
 import androidx.appcompat.app.AppCompatActivity
 import kotlinx.android.synthetic.main.activity_main.*
 
-private const val DELAY = 3_000L
+private const val SWITCH_DELAY = 3_000L
 
 class MainActivity : AppCompatActivity(R.layout.activity_main) {
     private val ids = listOf(
@@ -18,7 +18,7 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
     private val selectRandomTask = object : Runnable {
         override fun run() {
             bottomNavigation.selectedItemId = (ids - bottomNavigation.selectedItemId).random()
-            handler.postDelayed(this, DELAY)
+            handler.postDelayed(this, SWITCH_DELAY)
         }
     }
     override fun onStart() = super.onStart().also { handler.post(selectRandomTask) }
