@@ -10,7 +10,7 @@
     tools:context=".MainActivity"
     >
 
-    <com.patrickiv.bottomnavigationindicator.BottomNavigationLayout
+    <com.patrickiv.bottomnavigationindicator.BottomNavigationViewWithIndicator
         android:id="@+id/bottomNavigation"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

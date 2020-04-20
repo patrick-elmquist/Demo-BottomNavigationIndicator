@@ -3,22 +3,23 @@ package com.patrickiv.bottomnavigationindicator
 import android.animation.FloatEvaluator
 import android.animation.ValueAnimator
 import android.content.Context
-import android.graphics.drawable.GradientDrawable
+import android.graphics.Canvas
+import android.graphics.Paint
+import android.graphics.RectF
 import android.util.AttributeSet
-import android.view.Gravity
 import android.view.MenuItem
 import android.view.View
+import androidx.core.content.ContextCompat
 import androidx.core.view.doOnPreDraw
 import androidx.interpolator.view.animation.FastOutSlowInInterpolator
 import com.google.android.material.bottomnavigation.BottomNavigationView
-import kotlin.math.roundToInt
 
-private const val INDICATOR_SIZE_DP = 4
+private const val INDICATOR_SIZE_DP = 5
 private const val INDICATOR_BOTTOM_MARGIN_DP = 6
 private const val INDICATOR_MAX_SCALE = 9f
 private const val INDICATOR_TRANSLATION_DURATION = 500L
 
-class BottomNavigationLayout @JvmOverloads constructor(
+class BottomNavigationViewWithIndicator @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0
@@ -31,23 +32,18 @@ class BottomNavigationLayout @JvmOverloads constructor(
     private var animator: ValueAnimator? = null
     private val evaluator = FloatEvaluator()
 
-    private val indicatorBaseSize = INDICATOR_SIZE_DP.pxRounded
-    private val indicator = View(context).also {
-        it.layoutParams = generateDefaultLayoutParams().apply {
-            width = indicatorBaseSize
-            height = indicatorBaseSize
-            gravity = Gravity.BOTTOM
-            bottomMargin = INDICATOR_BOTTOM_MARGIN_DP.pxRounded
-        }
-        it.background = GradientDrawable().apply {
-            color = context.colorAccent.toColorStateList()
-            cornerRadius = it.layoutParams.height / 2f
-        }
-        addView(it)
+    private val indicator = RectF()
+    private val accentPaint = Paint().apply {
+        color = ContextCompat.getColor(context, R.color.colorAccent)
     }
+
+    private val bottomOffset = INDICATOR_BOTTOM_MARGIN_DP.px
+    private val defaultSize = INDICATOR_SIZE_DP.px
+    private val radius = defaultSize / 2f
 
     init {
         super.setOnNavigationItemSelectedListener(this)
+        setWillNotDraw(false)
     }
 
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
@@ -70,33 +66,46 @@ class BottomNavigationLayout @JvmOverloads constructor(
         }
     }
 
+    override fun onDraw(canvas: Canvas) {
+        super.onDraw(canvas)
+        if (isLaidOut) canvas.drawRoundRect(indicator, radius, radius, accentPaint)
+    }
+
     private fun onItemSelected(itemId: Int, animate: Boolean = true) {
         if (!isLaidOut) return
 
         cancelAnimator()
 
-        findViewById<View>(itemId)?.let { itemView ->
-            itemView.getLocationOnScreen(position)
-            val from = indicator.x
-            val currentScale = indicator.width / indicatorBaseSize.toFloat()
+        val itemView = findViewById<View>(itemId) ?: return
+        val fromCenterX = indicator.centerX()
+        val currentScale = indicator.width() / defaultSize
 
-            animator = ValueAnimator.ofFloat(currentScale, INDICATOR_MAX_SCALE, 1f).apply {
-                addUpdateListener {
-                    val scale = it.animatedValue as Float
-                    val newWidth = ((indicatorBaseSize * scale).roundToInt())
-                    indicator.layoutParams = indicator.layoutParams.apply { width = newWidth }
+        animator = ValueAnimator.ofFloat(currentScale, INDICATOR_MAX_SCALE, 1f).apply {
+            addUpdateListener {
+                val scale = it.animatedValue as Float
+                val indicatorWidth = defaultSize * scale
 
-                    itemView.getLocationOnScreen(position)
-                    val itemViewCenterX = position[0] + itemView.width / 2f
-                    val distanceTravelled = evaluator.evaluate(animatedFraction, from, itemViewCenterX)
-                    indicator.translationX = distanceTravelled - newWidth / 2f
-                }
-                interpolator = FastOutSlowInInterpolator()
-                duration = if (animate) INDICATOR_TRANSLATION_DURATION else 0L
-                start()
+                itemView.getLocationOnScreen(position)
+                val itemViewCenterX = position[0] + itemView.width / 2f
+                val distanceTravelled = lerp(animatedFraction, fromCenterX, itemViewCenterX)
+
+                val left = distanceTravelled - indicatorWidth / 2f
+                val right = distanceTravelled + indicatorWidth / 2f
+                val bottom = height - bottomOffset
+                val top = bottom - defaultSize
+
+                indicator.set(left, top, right, bottom)
+                invalidate()
             }
+
+            interpolator = FastOutSlowInInterpolator()
+            duration = if (animate) INDICATOR_TRANSLATION_DURATION else 0L
+
+            start()
         }
     }
+
+    private fun lerp(t: Float, a: Float, b: Float) = evaluator.evaluate(t, a, b)
 
     private fun cancelAnimator() = animator?.let {
         it.end()
@@ -104,5 +113,5 @@ class BottomNavigationLayout @JvmOverloads constructor(
         animator = null
     }
 
-    private val Int.pxRounded get() = (this * resources.displayMetrics.density).roundToInt()
+    private val Int.px get() = (this * resources.displayMetrics.density)
 }
