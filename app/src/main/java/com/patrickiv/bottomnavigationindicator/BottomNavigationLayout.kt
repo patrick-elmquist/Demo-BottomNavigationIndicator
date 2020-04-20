@@ -13,10 +13,10 @@ import androidx.interpolator.view.animation.FastOutSlowInInterpolator
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import kotlin.math.roundToInt
 
-const val INDICATOR_SIZE_DP = 4
-const val INDICATOR_BOTTOM_MARGIN_DP = 6
-const val INDICATOR_MAX_SCALE = 9f
-const val INDICATOR_TRANSLATION_DURATION = 500L
+private const val INDICATOR_SIZE_DP = 4
+private const val INDICATOR_BOTTOM_MARGIN_DP = 6
+private const val INDICATOR_MAX_SCALE = 9f
+private const val INDICATOR_TRANSLATION_DURATION = 500L
 
 class BottomNavigationLayout @JvmOverloads constructor(
     context: Context,
@@ -25,10 +25,9 @@ class BottomNavigationLayout @JvmOverloads constructor(
 ) : BottomNavigationView(context, attrs, defStyleAttr),
     BottomNavigationView.OnNavigationItemSelectedListener {
 
-    private val position = IntArray(2)
-
     private var externalSelectedListener: OnNavigationItemSelectedListener? = null
 
+    private val position = IntArray(2)
     private var animator: ValueAnimator? = null
     private val evaluator = FloatEvaluator()
 
@@ -102,7 +101,6 @@ class BottomNavigationLayout @JvmOverloads constructor(
     private fun cancelAnimator() = animator?.let {
         it.end()
         it.removeAllUpdateListeners()
-        it.removeAllListeners()
         animator = null
     }
 
