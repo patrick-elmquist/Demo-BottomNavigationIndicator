@@ -15,8 +15,7 @@ import kotlin.math.roundToInt
 
 const val INDICATOR_SIZE_DP = 4
 const val INDICATOR_BOTTOM_MARGIN_DP = 6
-const val INDICATOR_SCALE_MAX = 1.75f
-const val INDICATOR_SCALE_DURATION = 300L
+const val INDICATOR_MAX_SCALE = 9f
 const val INDICATOR_TRANSLATION_DURATION = 500L
 
 class BottomNavigationLayout @JvmOverloads constructor(
@@ -24,13 +23,11 @@ class BottomNavigationLayout @JvmOverloads constructor(
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0
 ) : BottomNavigationView(context, attrs, defStyleAttr),
-    BottomNavigationView.OnNavigationItemSelectedListener,
-    BottomNavigationView.OnNavigationItemReselectedListener {
+    BottomNavigationView.OnNavigationItemSelectedListener {
 
     private val position = IntArray(2)
 
     private var externalSelectedListener: OnNavigationItemSelectedListener? = null
-    private var externalReselectedListener: OnNavigationItemReselectedListener? = null
 
     private var animator: ValueAnimator? = null
     private val evaluator = FloatEvaluator()
@@ -52,7 +49,6 @@ class BottomNavigationLayout @JvmOverloads constructor(
 
     init {
         super.setOnNavigationItemSelectedListener(this)
-        super.setOnNavigationItemReselectedListener(this)
     }
 
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
@@ -63,17 +59,8 @@ class BottomNavigationLayout @JvmOverloads constructor(
         return false
     }
 
-    override fun onNavigationItemReselected(item: MenuItem) {
-        externalReselectedListener?.onNavigationItemReselected(item)
-        onItemReselected()
-    }
-
     override fun setOnNavigationItemSelectedListener(listener: OnNavigationItemSelectedListener?) {
         externalSelectedListener = listener
-    }
-
-    override fun setOnNavigationItemReselectedListener(listener: OnNavigationItemReselectedListener?) {
-        externalReselectedListener = listener
     }
 
     override fun onAttachedToWindow() {
@@ -94,10 +81,7 @@ class BottomNavigationLayout @JvmOverloads constructor(
             val from = indicator.x
             val currentScale = indicator.width / indicatorBaseSize.toFloat()
 
-            // TODO
-            // * Make the speed and size depend on the distance to travel
-
-            animator = ValueAnimator.ofFloat(currentScale, 9f, 1f).apply {
+            animator = ValueAnimator.ofFloat(currentScale, INDICATOR_MAX_SCALE, 1f).apply {
                 addUpdateListener {
                     val scale = it.animatedValue as Float
                     val newWidth = ((indicatorBaseSize * scale).roundToInt())
@@ -115,29 +99,11 @@ class BottomNavigationLayout @JvmOverloads constructor(
         }
     }
 
-    private fun cancelAnimator() {
-        animator?.let {
-            it.end()
-            it.removeAllUpdateListeners()
-            it.removeAllListeners()
-            animator = null
-        }
-    }
-
-    private fun onItemReselected() {
-        cancelAnimator()
-
-        animator = ValueAnimator.ofFloat(1f, INDICATOR_SCALE_MAX, 1f).apply {
-            addUpdateListener {
-                val fraction = it.animatedValue as Float
-                indicator.scaleX = fraction
-                indicator.scaleY = fraction
-            }
-
-            interpolator = FastOutSlowInInterpolator()
-            duration = INDICATOR_SCALE_DURATION
-            start()
-        }
+    private fun cancelAnimator() = animator?.let {
+        it.end()
+        it.removeAllUpdateListeners()
+        it.removeAllListeners()
+        animator = null
     }
 
     private val Int.pxRounded get() = (this * resources.displayMetrics.density).roundToInt()
