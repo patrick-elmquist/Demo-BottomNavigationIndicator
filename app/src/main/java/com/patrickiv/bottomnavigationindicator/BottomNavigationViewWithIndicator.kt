@@ -15,34 +15,35 @@ import androidx.interpolator.view.animation.LinearOutSlowInInterpolator
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import kotlin.math.abs
 
-private const val DEFAULT_SIZE = 4
+private const val DEFAULT_SIZE_DP = 4
 private const val BOTTOM_MARGIN_DP = 6
 private const val DEFAULT_SCALE = 1f
 private const val MAX_SCALE = 15f
 private const val BASE_DURATION = 300L
 private const val VARIABLE_DURATION = 300L
 
-class BottomNavigationViewWithIndicator @JvmOverloads constructor(
-    context: Context,
-    attrs: AttributeSet? = null,
-    defStyleAttr: Int = 0
-) : BottomNavigationView(context, attrs, defStyleAttr),
+class BottomNavigationViewWithIndicator: BottomNavigationView,
     BottomNavigationView.OnNavigationItemSelectedListener {
 
     private var externalSelectedListener: OnNavigationItemSelectedListener? = null
 
-    private val position = IntArray(2)
     private var animator: ValueAnimator? = null
     private val evaluator = FloatEvaluator()
 
     private val indicator = RectF()
     private val accentPaint = Paint().apply {
+        isAntiAlias = true
         color = ContextCompat.getColor(context, R.color.colorAccent)
     }
 
-    private val bottomOffset = BOTTOM_MARGIN_DP.px
-    private val defaultSize = DEFAULT_SIZE.px
+    private val bottomOffset = BOTTOM_MARGIN_DP * resources.displayMetrics.density
+    private val defaultSize = DEFAULT_SIZE_DP * resources.displayMetrics.density
     private val radius = defaultSize / 2f
+
+    constructor(context: Context) : super(context)
+    constructor(context: Context, attrs: AttributeSet?) : super(context, attrs)
+    constructor(context: Context, attrs: AttributeSet?, defStyleAttr: Int)
+            : super(context, attrs, defStyleAttr)
 
     init {
         super.setOnNavigationItemSelectedListener(this)
@@ -89,8 +90,7 @@ class BottomNavigationViewWithIndicator @JvmOverloads constructor(
         val fromCenterX = indicator.centerX()
         val currentScale = indicator.width() / defaultSize
 
-        itemView.getLocationOnScreen(position)
-        val distance = abs(fromCenterX - (position[0] + itemView.width / 2f))
+        val distance = abs(fromCenterX - (itemView.left + itemView.width / 2f))
         val animationDuration = if (animate) calculateDuration(distance) else 0L
 
         animator = ValueAnimator.ofFloat(currentScale, MAX_SCALE, DEFAULT_SCALE).apply {
@@ -98,9 +98,8 @@ class BottomNavigationViewWithIndicator @JvmOverloads constructor(
                 val scale = it.animatedValue as Float
                 val indicatorWidth = defaultSize * scale
 
-                itemView.getLocationOnScreen(position)
-                val itemViewCenterX = position[0] + itemView.width / 2f
-                val distanceTravelled = lerp(animatedFraction, fromCenterX, itemViewCenterX)
+                val itemViewCenterX = itemView.left + itemView.width / 2f
+                val distanceTravelled = interpolate(animatedFraction, fromCenterX, itemViewCenterX)
 
                 val left = distanceTravelled - indicatorWidth / 2f
                 val right = distanceTravelled + indicatorWidth / 2f
@@ -121,13 +120,11 @@ class BottomNavigationViewWithIndicator @JvmOverloads constructor(
     private fun calculateDuration(distance: Float) =
         (BASE_DURATION + VARIABLE_DURATION * distance / width.toFloat()).toLong()
 
-    private fun lerp(t: Float, a: Float, b: Float) = evaluator.evaluate(t, a, b)
+    private fun interpolate(t: Float, a: Float, b: Float) = evaluator.evaluate(t, a, b)
 
     private fun cancelAnimator() = animator?.let {
         it.end()
         it.removeAllUpdateListeners()
         animator = null
     }
-
-    private val Int.px get() = (this * resources.displayMetrics.density)
 }
