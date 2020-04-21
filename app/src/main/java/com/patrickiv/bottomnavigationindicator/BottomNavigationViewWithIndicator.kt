@@ -11,13 +11,16 @@ import android.view.MenuItem
 import android.view.View
 import androidx.core.content.ContextCompat
 import androidx.core.view.doOnPreDraw
-import androidx.interpolator.view.animation.FastOutSlowInInterpolator
+import androidx.interpolator.view.animation.LinearOutSlowInInterpolator
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import kotlin.math.abs
 
-private const val INDICATOR_SIZE_DP = 5
-private const val INDICATOR_BOTTOM_MARGIN_DP = 6
-private const val INDICATOR_MAX_SCALE = 9f
-private const val INDICATOR_TRANSLATION_DURATION = 500L
+private const val DEFAULT_SIZE = 4
+private const val BOTTOM_MARGIN_DP = 6
+private const val DEFAULT_SCALE = 1f
+private const val MAX_SCALE = 15f
+private const val BASE_DURATION = 300L
+private const val VARIABLE_DURATION = 300L
 
 class BottomNavigationViewWithIndicator @JvmOverloads constructor(
     context: Context,
@@ -37,8 +40,8 @@ class BottomNavigationViewWithIndicator @JvmOverloads constructor(
         color = ContextCompat.getColor(context, R.color.colorAccent)
     }
 
-    private val bottomOffset = INDICATOR_BOTTOM_MARGIN_DP.px
-    private val defaultSize = INDICATOR_SIZE_DP.px
+    private val bottomOffset = BOTTOM_MARGIN_DP.px
+    private val defaultSize = DEFAULT_SIZE.px
     private val radius = defaultSize / 2f
 
     init {
@@ -66,6 +69,12 @@ class BottomNavigationViewWithIndicator @JvmOverloads constructor(
         }
     }
 
+    override fun onDetachedFromWindow() {
+        super.onDetachedFromWindow()
+        // Clean up the animator if the view is going away
+        cancelAnimator()
+    }
+
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
         if (isLaidOut) canvas.drawRoundRect(indicator, radius, radius, accentPaint)
@@ -80,7 +89,11 @@ class BottomNavigationViewWithIndicator @JvmOverloads constructor(
         val fromCenterX = indicator.centerX()
         val currentScale = indicator.width() / defaultSize
 
-        animator = ValueAnimator.ofFloat(currentScale, INDICATOR_MAX_SCALE, 1f).apply {
+        itemView.getLocationOnScreen(position)
+        val distance = abs(fromCenterX - (position[0] + itemView.width / 2f))
+        val animationDuration = if (animate) calculateDuration(distance) else 0L
+
+        animator = ValueAnimator.ofFloat(currentScale, MAX_SCALE, DEFAULT_SCALE).apply {
             addUpdateListener {
                 val scale = it.animatedValue as Float
                 val indicatorWidth = defaultSize * scale
@@ -98,12 +111,15 @@ class BottomNavigationViewWithIndicator @JvmOverloads constructor(
                 invalidate()
             }
 
-            interpolator = FastOutSlowInInterpolator()
-            duration = if (animate) INDICATOR_TRANSLATION_DURATION else 0L
+            interpolator = LinearOutSlowInInterpolator()
+            duration = animationDuration
 
             start()
         }
     }
+
+    private fun calculateDuration(distance: Float) =
+        (BASE_DURATION + VARIABLE_DURATION * distance / width.toFloat()).toLong()
 
     private fun lerp(t: Float, a: Float, b: Float) = evaluator.evaluate(t, a, b)
 
