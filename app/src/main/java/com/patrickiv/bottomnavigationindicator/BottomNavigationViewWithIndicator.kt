@@ -31,8 +31,7 @@ class BottomNavigationViewWithIndicator: BottomNavigationView,
     private val evaluator = FloatEvaluator()
 
     private val indicator = RectF()
-    private val accentPaint = Paint().apply {
-        isAntiAlias = true
+    private val accentPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = ContextCompat.getColor(context, R.color.colorAccent)
     }
 
@@ -47,7 +46,6 @@ class BottomNavigationViewWithIndicator: BottomNavigationView,
 
     init {
         super.setOnNavigationItemSelectedListener(this)
-        setWillNotDraw(false)
     }
 
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
@@ -76,8 +74,8 @@ class BottomNavigationViewWithIndicator: BottomNavigationView,
         cancelAnimator()
     }
 
-    override fun onDraw(canvas: Canvas) {
-        super.onDraw(canvas)
+    override fun dispatchDraw(canvas: Canvas) {
+        super.dispatchDraw(canvas)
         if (isLaidOut) canvas.drawRoundRect(indicator, radius, radius, accentPaint)
     }
 
