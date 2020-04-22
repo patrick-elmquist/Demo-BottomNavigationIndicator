@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <dimen name="default_size">4dp</dimen>
+    <dimen name="bottom_margin">6dp</dimen>
+
+</resources>

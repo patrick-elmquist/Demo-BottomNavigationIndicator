@@ -1,6 +1,5 @@
 package com.patrickiv.bottomnavigationindicator
 
-import android.animation.FloatEvaluator
 import android.animation.ValueAnimator
 import android.content.Context
 import android.graphics.Canvas
@@ -15,8 +14,6 @@ import androidx.interpolator.view.animation.LinearOutSlowInInterpolator
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import kotlin.math.abs
 
-private const val DEFAULT_SIZE_DP = 4
-private const val BOTTOM_MARGIN_DP = 6
 private const val DEFAULT_SCALE = 1f
 private const val MAX_SCALE = 15f
 private const val BASE_DURATION = 300L
@@ -26,18 +23,15 @@ class BottomNavigationViewWithIndicator: BottomNavigationView,
     BottomNavigationView.OnNavigationItemSelectedListener {
 
     private var externalSelectedListener: OnNavigationItemSelectedListener? = null
-
     private var animator: ValueAnimator? = null
-    private val evaluator = FloatEvaluator()
 
     private val indicator = RectF()
-    private val accentPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+    private val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = ContextCompat.getColor(context, R.color.colorAccent)
     }
 
-    private val bottomOffset = BOTTOM_MARGIN_DP * resources.displayMetrics.density
-    private val defaultSize = DEFAULT_SIZE_DP * resources.displayMetrics.density
-    private val radius = defaultSize / 2f
+    private val bottomOffset = resources.getDimension(R.dimen.bottom_margin)
+    private val defaultSize = resources.getDimension(R.dimen.default_size)
 
     constructor(context: Context) : super(context)
     constructor(context: Context, attrs: AttributeSet?) : super(context, attrs)
@@ -76,7 +70,10 @@ class BottomNavigationViewWithIndicator: BottomNavigationView,
 
     override fun dispatchDraw(canvas: Canvas) {
         super.dispatchDraw(canvas)
-        if (isLaidOut) canvas.drawRoundRect(indicator, radius, radius, accentPaint)
+        if (isLaidOut) {
+            val cornerRadius = indicator.height() / 2f
+            canvas.drawRoundRect(indicator, cornerRadius, cornerRadius, paint)
+        }
     }
 
     private fun onItemSelected(itemId: Int, animate: Boolean = true) {
@@ -86,39 +83,50 @@ class BottomNavigationViewWithIndicator: BottomNavigationView,
 
         val itemView = findViewById<View>(itemId) ?: return
         val fromCenterX = indicator.centerX()
-        val currentScale = indicator.width() / defaultSize
+        val fromScale = indicator.width() / defaultSize
 
-        val distance = abs(fromCenterX - (itemView.left + itemView.width / 2f))
-        val animationDuration = if (animate) calculateDuration(distance) else 0L
-
-        animator = ValueAnimator.ofFloat(currentScale, MAX_SCALE, DEFAULT_SCALE).apply {
+        animator = ValueAnimator.ofFloat(fromScale, MAX_SCALE, DEFAULT_SCALE).apply {
             addUpdateListener {
+                val progress = it.animatedFraction
+                val distanceTravelled = linearInterpolation(progress, fromCenterX, itemView.centerX)
+
                 val scale = it.animatedValue as Float
                 val indicatorWidth = defaultSize * scale
 
-                val itemViewCenterX = itemView.left + itemView.width / 2f
-                val distanceTravelled = interpolate(animatedFraction, fromCenterX, itemViewCenterX)
-
                 val left = distanceTravelled - indicatorWidth / 2f
+                val top = height - bottomOffset - defaultSize
                 val right = distanceTravelled + indicatorWidth / 2f
                 val bottom = height - bottomOffset
-                val top = bottom - defaultSize
 
                 indicator.set(left, top, right, bottom)
                 invalidate()
             }
 
             interpolator = LinearOutSlowInInterpolator()
-            duration = animationDuration
+
+            val distanceToMove = abs(fromCenterX - itemView.centerX)
+            duration = if (animate) calculateDuration(distanceToMove) else 0L
 
             start()
         }
     }
 
-    private fun calculateDuration(distance: Float) =
-        (BASE_DURATION + VARIABLE_DURATION * distance / width.toFloat()).toLong()
+    /**
+     * Linear interpolation between 'a' and 'b' based on the progress 't'
+     */
+    private fun linearInterpolation(t: Float, a: Float, b: Float) = (1 - t) * a + t * b
 
-    private fun interpolate(t: Float, a: Float, b: Float) = evaluator.evaluate(t, a, b)
+    /**
+     * Calculates a duration for the translation based on a fixed duration + a duration
+     * based on the distance the indicator is being moved.
+     */
+    private fun calculateDuration(distance: Float) =
+        (BASE_DURATION + VARIABLE_DURATION * (distance / width).coerceIn(0f, 1f)).toLong()
+
+    /**
+     * Convenience property for getting the center X value of a View
+     */
+    private val View.centerX get() = left + width / 2f
 
     private fun cancelAnimator() = animator?.let {
         it.end()
