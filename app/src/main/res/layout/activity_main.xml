@@ -1,20 +1,33 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout
+<LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:gravity="center_vertical"
+    android:gravity="center"
     tools:context=".MainActivity"
     >
+
+    <TextView
+        android:id="@+id/pageName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle1"
+        android:textColor="?android:textColorSecondary"
+        tools:text="Sample"
+        />
+
+    <Space
+        android:layout_width="0dp"
+        android:layout_height="48dp"
+        />
 
     <com.patrickiv.bottomnavigationindicator.BottomNavigationViewWithIndicator
         android:id="@+id/bottomNavigation"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="center_vertical"
         android:minHeight="?actionBarSize"
         android:background="?colorPrimary"
         android:elevation="8dp"
@@ -24,4 +37,4 @@
         app:labelVisibilityMode="unlabeled"
         />
 
-</FrameLayout>
+</LinearLayout>

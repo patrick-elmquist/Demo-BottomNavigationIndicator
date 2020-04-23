@@ -16,7 +16,7 @@ import kotlin.math.abs
 
 private const val DEFAULT_SCALE = 1f
 private const val MAX_SCALE = 15f
-private const val BASE_DURATION = 5000L
+private const val BASE_DURATION = 300L
 private const val VARIABLE_DURATION = 300L
 
 class BottomNavigationViewWithIndicator: BottomNavigationView,
