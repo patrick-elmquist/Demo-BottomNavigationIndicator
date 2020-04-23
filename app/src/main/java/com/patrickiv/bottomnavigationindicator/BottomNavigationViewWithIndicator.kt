@@ -16,7 +16,7 @@ import kotlin.math.abs
 
 private const val DEFAULT_SCALE = 1f
 private const val MAX_SCALE = 15f
-private const val BASE_DURATION = 300L
+private const val BASE_DURATION = 5000L
 private const val VARIABLE_DURATION = 300L
 
 class BottomNavigationViewWithIndicator: BottomNavigationView,
@@ -65,7 +65,7 @@ class BottomNavigationViewWithIndicator: BottomNavigationView,
     override fun onDetachedFromWindow() {
         super.onDetachedFromWindow()
         // Clean up the animator if the view is going away
-        cancelAnimator()
+        cancelAnimator(setEndValues = true)
     }
 
     override fun dispatchDraw(canvas: Canvas) {
@@ -79,7 +79,10 @@ class BottomNavigationViewWithIndicator: BottomNavigationView,
     private fun onItemSelected(itemId: Int, animate: Boolean = true) {
         if (!isLaidOut) return
 
-        cancelAnimator()
+        // Interrupt any current animation, but don't set the end values,
+        // if it's in the middle of a movement we want it to start from
+        // the current position, to make the transition smoother.
+        cancelAnimator(setEndValues = false)
 
         val itemView = findViewById<View>(itemId) ?: return
         val fromCenterX = indicator.centerX()
@@ -128,8 +131,12 @@ class BottomNavigationViewWithIndicator: BottomNavigationView,
      */
     private val View.centerX get() = left + width / 2f
 
-    private fun cancelAnimator() = animator?.let {
-        it.end()
+    private fun cancelAnimator(setEndValues: Boolean) = animator?.let {
+        if (setEndValues) {
+            it.end()
+        } else {
+            it.cancel()
+        }
         it.removeAllUpdateListeners()
         animator = null
     }

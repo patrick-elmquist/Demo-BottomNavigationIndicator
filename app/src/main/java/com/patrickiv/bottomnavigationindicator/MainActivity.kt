@@ -17,6 +17,7 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
     private val handler = Handler()
     private val selectRandomTask = object : Runnable {
         override fun run() {
+            if (true) return
             bottomNavigation.selectedItemId = (ids - bottomNavigation.selectedItemId).random()
             handler.postDelayed(this, SWITCH_DELAY)
         }
